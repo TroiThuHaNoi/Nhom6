@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thêm dữ liệu</title>
+
+    <!-- Bootstrap CSS CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        background-color: #f8f9fa;
+        margin: 20px;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .form-container {
+        max-width: 600px;
+        margin: auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <button class="btn btn-primary">
+      <a href="index.html" style="text-decoration: none; color: white"
+        >Xem bài viết</a
+      >
+    </button>
+    <button class="btn btn-primary">
+      <a href="search.html" style="text-decoration: none; color: white"
+        >Tìm kiếm bài viết</a
+      >
+    </button>
+    <div class="container">
+      <h1>Thêm Dữ Liệu</h1>
+
+      <!-- Form thêm Caterogy -->
+      <div class="form-container mb-4">
+        <h2>Thêm Thể Loại</h2>
+        <form id="formCaterogy">
+          <div class="mb-3">
+            <label for="nameCaterogy" class="form-label">Tên Thể Loại</label>
+            <input
+              type="text"
+              class="form-control"
+              id="nameCaterogy"
+              placeholder="Nhập tên thể loại"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Thêm Thể Loại</button>
+        </form>
+      </div>
+
+      <!-- Form thêm Articles -->
+      <div class="form-container">
+        <h2>Thêm Bài Viết</h2>
+        <form id="formArticles">
+          <div class="mb-3">
+            <label for="idCaterogy" class="form-label">Thể Loại</label>
+            <select id="idCaterogy" class="form-select" required>
+              <!-- Dữ liệu được thêm qua JavaScript -->
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="nameArticle" class="form-label">Tên Bài Viết</label>
+            <input
+              type="text"
+              class="form-control"
+              id="nameArticle"
+              placeholder="Nhập tên bài viết"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="contentArticle" class="form-label">Nội Dung</label>
+            <textarea
+              id="contentArticle"
+              class="form-control"
+              rows="4"
+              placeholder="Nhập nội dung bài viết"
+              required
+            ></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="imageArticle" class="form-label">Hình Ảnh</label>
+            <input
+              type="text"
+              class="form-control"
+              id="imageArticle"
+              placeholder="Nhập link hình ảnh"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-success">Thêm Bài Viết</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // URL của server Node.js
+      const API_URL = "http://localhost:3000";
+
+      // Load danh sách thể loại vào combobox
+      document.addEventListener("DOMContentLoaded", async () => {
+        const categorySelect = document.getElementById("idCaterogy");
+        try {
+          const response = await fetch(`${API_URL}/categories`);
+          const categories = await response.json();
+
+          categories.forEach((category) => {
+            const option = document.createElement("option");
+            option.value = category.idCaterogy;
+            option.textContent = category.nameCaterogy;
+            categorySelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error fetching categories:", error);
+        }
+      });
+
+      // Xử lý form thêm Caterogy
+      document
+        .getElementById("formCaterogy")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault(); // Ngừng gửi form mặc định
+
+          const nameCaterogy = document
+            .getElementById("nameCaterogy")
+            .value.trim();
+
+          // Kiểm tra tính hợp lệ dữ liệu
+          if (nameCaterogy === "") {
+            alert("Tên thể loại không được để trống.");
+            return;
+          }
+
+          // Kiểm tra độ dài tên thể loại
+          if (nameCaterogy.length < 3 || nameCaterogy.length > 50) {
+            alert("Tên thể loại phải có độ dài từ 3 đến 50 ký tự.");
+            return;
+          }
+
+          // Kiểm tra ký tự đặc biệt không hợp lệ
+          const invalidCharacters = /[^a-zA-Z0-9\s]/; // Không cho phép ký tự đặc biệt (chỉ cho phép chữ cái, số và khoảng trắng)
+          if (invalidCharacters.test(nameCaterogy)) {
+            alert("Tên thể loại không được chứa ký tự đặc biệt.");
+            return;
+          }
+
+          // Nếu tất cả kiểm tra hợp lệ, thực hiện gửi dữ liệu
+          try {
+            const response = await fetch(`${API_URL}/categories`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ nameCaterogy }),
+            });
+
+            if (response.ok) {
+              alert("Thêm thể loại thành công!");
+              location.reload(); // Tải lại trang sau khi thêm thành công
+            } else {
+              alert("Lỗi khi thêm thể loại.");
+            }
+          } catch (error) {
+            console.error("Error adding category:", error);
+            alert("Đã xảy ra lỗi khi thêm thể loại.");
+          }
+        });
+
+      // Xử lý form thêm Articles
+      document
+        .getElementById("formArticles")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const idCaterogy = document.getElementById("idCaterogy").value;
+          const nameArticle = document
+            .getElementById("nameArticle")
+            .value.trim();
+          const contentArticle = document
+            .getElementById("contentArticle")
+            .value.trim();
+          const imageArticle = document
+            .getElementById("imageArticle")
+            .value.trim();
+
+          // Kiểm tra tính hợp lệ dữ liệu
+
+          // Kiểm tra thể loại đã được chọn
+          if (!idCaterogy) {
+            alert("Vui lòng chọn thể loại.");
+            return;
+          }
+
+          // Kiểm tra tên bài viết không được để trống
+          if (nameArticle === "") {
+            alert("Tên bài viết không được để trống.");
+            return;
+          }
+
+          // Kiểm tra độ dài tên bài viết
+          if (nameArticle.length < 3 || nameArticle.length > 150) {
+            alert("Tên bài viết phải có độ dài từ 3 đến 150 ký tự.");
+            return;
+          }
+
+          // Kiểm tra nội dung bài viết không được để trống
+          if (contentArticle === "") {
+            alert("Nội dung bài viết không được để trống.");
+            return;
+          }
+
+          // Kiểm tra độ dài nội dung bài viết
+          if (contentArticle.length < 10) {
+            alert("Nội dung bài viết phải có ít nhất 10 ký tự.");
+            return;
+          }
+
+          // Kiểm tra đường dẫn ảnh (nếu có) là hợp lệ (có thể kiểm tra định dạng .jpg, .png...)
+          if (imageArticle && !/\.(jpg|jpeg|png|gif)$/i.test(imageArticle)) {
+            alert(
+              "Đường dẫn ảnh không hợp lệ. Chỉ chấp nhận .jpg, .jpeg, .png, .gif."
+            );
+            return;
+          }
+
+          // Nếu tất cả kiểm tra hợp lệ, thực hiện gửi dữ liệu
+          try {
+            const response = await fetch(`${API_URL}/articles`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                idCaterogy,
+                nameArticle,
+                contentArticle,
+                imageArticle,
+              }),
+            });
+
+            if (response.ok) {
+              alert("Thêm bài viết thành công!");
+              location.reload(); // Tải lại trang sau khi thêm thành công
+            } else {
+              alert("Lỗi khi thêm bài viết.");
+            }
+          } catch (error) {
+            console.error("Error adding article:", error);
+            alert("Đã xảy ra lỗi khi thêm bài viết.");
+          }
+        });
+    </script>
+  </body>
+</html>
